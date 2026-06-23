@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>써머리 만족도 조사</title>
+<style>
+  :root{
+    --blue:#3182f6;
+    --blue-dark:#1b64da;
+    --blue-light:#e8f3ff;
+    --bg:#f2f4f6;
+    --card:#ffffff;
+    --text:#191f28;
+    --sub:#8b95a1;
+    --line:#e5e8eb;
+    --green:#00c896;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretendard',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.5;
+    padding-bottom:100px;
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:0 16px;}
+
+  /* 헤더 */
+  .header{padding:32px 0 20px;}
+  .header h1{font-size:24px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;}
+  .header p{font-size:15px;color:var(--sub);}
+
+  /* 카드 공통 */
+  .card{
+    background:var(--card);
+    border-radius:20px;
+    padding:24px 20px;
+    margin-bottom:16px;
+  }
+  .card-label{font-size:13px;font-weight:700;color:var(--blue);margin-bottom:6px;}
+  .card-title{font-size:18px;font-weight:700;margin-bottom:4px;}
+  .card-desc{font-size:14px;color:var(--sub);margin-bottom:18px;}
+
+  /* 인풋 */
+  .input{
+    width:100%;
+    background:var(--bg);
+    border:2px solid transparent;
+    border-radius:14px;
+    padding:16px;
+    font-size:16px;
+    font-family:inherit;
+    color:var(--text);
+    transition:.15s;
+  }
+  .input:focus{outline:none;border-color:var(--blue);background:#fff;}
+  textarea.input{resize:none;min-height:90px;line-height:1.6;}
+
+  /* 예/아니오 토글 */
+  .yn{display:flex;gap:10px;}
+  .yn button{
+    flex:1;
+    padding:16px;
+    border:2px solid var(--line);
+    background:#fff;
+    border-radius:14px;
+    font-size:16px;
+    font-weight:700;
+    font-family:inherit;
+    color:var(--sub);
+    cursor:pointer;
+    transition:.15s;
+  }
+  .yn button.on{border-color:var(--blue);background:var(--blue-light);color:var(--blue);}
+
+  /* 탭 */
+  .tabs{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding:4px 0 14px;
+    scrollbar-width:none;
+  }
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{
+    flex-shrink:0;
+    padding:10px 14px;
+    background:#fff;
+    border:2px solid var(--line);
+    border-radius:12px;
+    font-size:13px;
+    font-weight:700;
+    color:var(--sub);
+    cursor:pointer;
+    transition:.15s;
+    white-space:nowrap;
+    position:relative;
+  }
+  .tab.active{border-color:var(--blue);color:var(--blue);background:var(--blue-light);}
+  .tab.done{border-color:var(--green);color:var(--green);}
+  .tab .check.hidden{display:none !important;}
+  .tab .check{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:16px;height:16px;
+    background:var(--green);
+    color:#fff;
+    border-radius:50%;
+    font-size:10px;
+    margin-left:5px;
+    vertical-align:middle;
+  }
+
+  /* 점수 1-5 */
+  .q{margin-bottom:24px;}
+  .q:last-child{margin-bottom:0;}
+  .q-text{font-size:15px;font-weight:600;margin-bottom:12px;line-height:1.5;}
+  .scale{display:flex;gap:8px;}
+  .scale button{
+    flex:1;
+    aspect-ratio:1;
+    border:2px solid var(--line);
+    background:#fff;
+    border-radius:14px;
+    font-size:17px;
+    font-weight:700;
+    color:var(--sub);
+    cursor:pointer;
+    transition:.12s;
+  }
+  .scale button.on{
+    border-color:var(--blue);
+    background:var(--blue);
+    color:#fff;
+    transform:scale(1.05);
+  }
+  .scale-hint{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--sub);}
+
+  .divider{height:1px;background:var(--line);margin:20px 0;}
+
+  /* 제출 버튼 */
+  .submit-bar{
+    position:fixed;
+    bottom:0;left:0;right:0;
+    background:linear-gradient(to top,var(--bg) 70%,transparent);
+    padding:16px;
+    display:flex;
+    justify-content:center;
+  }
+  .submit-btn{
+    width:100%;
+    max-width:520px;
+    padding:18px;
+    background:var(--blue);
+    color:#fff;
+    border:none;
+    border-radius:16px;
+    font-size:17px;
+    font-weight:700;
+    font-family:inherit;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .submit-btn:disabled{background:#c4cdd6;cursor:not-allowed;}
+  .submit-btn:active:not(:disabled){background:var(--blue-dark);}
+
+  .progress-text{font-size:13px;color:var(--sub);text-align:center;margin-bottom:10px;}
+
+  .hidden{display:none;}
+
+  /* 완료 화면 */
+  .done-screen{text-align:center;padding:80px 20px;}
+  .done-screen .circle{
+    width:80px;height:80px;
+    background:var(--green);
+    border-radius:50%;
+    margin:0 auto 24px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:40px;color:#fff;
+    animation:pop .4s ease;
+  }
+  @keyframes pop{0%{transform:scale(0);}70%{transform:scale(1.15);}100%{transform:scale(1);}}
+  .done-screen h2{font-size:22px;font-weight:800;margin-bottom:10px;}
+  .done-screen p{font-size:15px;color:var(--sub);}
+
+  .toast{
+    position:fixed;
+    bottom:90px;left:50%;
+    transform:translateX(-50%);
+    background:#191f28;
+    color:#fff;
+    padding:12px 20px;
+    border-radius:12px;
+    font-size:14px;
+    font-weight:600;
+    opacity:0;
+    transition:.3s;
+    z-index:100;
+    white-space:nowrap;
+  }
+  .toast.show{opacity:1;bottom:100px;}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- ===== STEP 1: 기본정보 ===== -->
+  <div class="wrap" id="step-info">
+    <div class="header">
+      <h1>써머리 만족도 조사 📝</h1>
+      <p>여러분이 받은 과목별 써머리,<br>얼마나 도움이 됐는지 알려주세요!</p>
+    </div>
+
+    <div class="card">
+      <div class="card-label">기본 정보</div>
+      <div class="card-title">이름을 알려주세요</div>
+      <div class="card-desc">익명 조사가 아니에요. 정확한 이름을 적어주세요.</div>
+      <input type="text" class="input" id="name" placeholder="이름 입력" autocomplete="off">
+    </div>
+
+    <div class="card">
+      <div class="card-title">2학기에도 써머리 제작에 참여할 건가요?</div>
+      <div class="card-desc">앞으로의 운영 계획을 세우는 데 참고할게요.</div>
+      <div class="yn" id="join2">
+        <button data-v="예">예</button>
+        <button data-v="아니오">아니오</button>
+      </div>
+    </div>
+
+    <div class="submit-bar">
+      <button class="submit-btn" id="startBtn" disabled>만족도 조사 시작하기</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP 2: 만족도 조사 ===== -->
+  <div class="wrap hidden" id="step-survey">
+    <div class="header">
+      <h1 id="hello">만족도 조사</h1>
+      <p>과목별로 평가해주세요. 탭을 눌러 이동할 수 있어요.</p>
+    </div>
+
+    <div class="tabs" id="tabs"></div>
+
+    <div id="surveyCards"></div>
+
+    <div class="submit-bar">
+      <div style="width:100%;max-width:520px;">
+        <div class="progress-text" id="progressText">0 / 7 과목 완료</div>
+        <button class="submit-btn" id="submitBtn" disabled>제출하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== STEP 3: 완료 ===== -->
+  <div class="wrap hidden" id="step-done">
+    <div class="done-screen">
+      <div class="circle">✓</div>
+      <h2>제출 완료!</h2>
+      <p>소중한 의견 감사합니다 😊</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ====================================================
+   ⚙️ 설정: 아래 따옴표 안에 구글 Apps Script URL 넣기
+   ==================================================== */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwLp-AwpShchaxYwz3Yckr1cW_9mTHOz9LjpM3Ps7VgAbJye5tt-8wuOPRtxOR8JMI_QA/exec";
+
+/* ====== 과목 데이터 ====== */
+const SUBJECTS = [
+  {subject:"한의학 한문", prof:"정헌영", maker:"김기범"},
+  {subject:"한의학 한문", prof:"엄동명", maker:"박윤지"},
+  {subject:"한의학 개론", prof:"한상윤", maker:"박현서"},
+  {subject:"한의학 기초 이론", prof:"정현종", maker:"김나현"},
+  {subject:"한의학 기초 이론", prof:"정현종", maker:"정혜인"},
+  {subject:"한의학 기초 이론", prof:"정현종", maker:"최재혁"},
+  {subject:"일반 생물학", prof:"박종원", maker:"주유민"},
+];
+
+const QUESTIONS = [
+  "학습에 도움이 된 정도",
+  "가독성 / 편의성",
+  "써머리 외 학습자료·시험대비에 도움을 줬는지",
+];
+
+/* ====== 상태 ====== */
+let info = { name:"", join2:"" };
+let answers = SUBJECTS.map(()=>({ q:[0,0,0], good:"", improve:"" }));
+let activeTab = 0;
+
+/* ====== STEP 1 로직 ====== */
+const nameEl = document.getElementById('name');
+const startBtn = document.getElementById('startBtn');
+
+nameEl.addEventListener('input', checkInfo);
+document.querySelectorAll('#join2 button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('#join2 button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    info.join2 = b.dataset.v;
+    checkInfo();
+  });
+});
+function checkInfo(){
+  info.name = nameEl.value.trim();
+  startBtn.disabled = !(info.name && info.join2);
+}
+startBtn.addEventListener('click', ()=>{
+  document.getElementById('step-info').classList.add('hidden');
+  document.getElementById('step-survey').classList.remove('hidden');
+  document.getElementById('hello').textContent = info.name + '님, 평가해주세요';
+  buildTabs();
+  renderCard();
+  window.scrollTo(0,0);
+});
+
+/* ====== STEP 2: 탭 ====== */
+function buildTabs(){
+  const t = document.getElementById('tabs');
+  t.innerHTML = '';
+  SUBJECTS.forEach((s,i)=>{
+    const b = document.createElement('button');
+    b.className = 'tab';
+    b.dataset.i = i;
+    b.innerHTML = `${s.maker}<span class="check hidden">✓</span>`;
+    b.addEventListener('click', ()=>{ activeTab=i; renderCard(); });
+    t.appendChild(b);
+  });
+  updateTabs();
+}
+function isDone(i){ return answers[i].q.every(v=>v>0); }
+function updateTabs(){
+  document.querySelectorAll('.tab').forEach((b,i)=>{
+    b.classList.toggle('active', i===activeTab);
+    b.classList.toggle('done', isDone(i) && i!==activeTab);
+    const chk = b.querySelector('.check');
+    chk.classList.toggle('hidden', !isDone(i) || i===activeTab);
+  });
+  const cnt = answers.filter((_,i)=>isDone(i)).length;
+  document.getElementById('progressText').textContent = `${cnt} / ${SUBJECTS.length} 과목 완료`;
+  document.getElementById('submitBtn').disabled = cnt !== SUBJECTS.length;
+}
+
+/* ====== STEP 2: 카드 ====== */
+function renderCard(){
+  const s = SUBJECTS[activeTab];
+  const a = answers[activeTab];
+  const box = document.getElementById('surveyCards');
+  box.innerHTML = '';
+
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  let html = `
+    <div class="card-label">${s.subject} · ${s.prof} 교수님</div>
+    <div class="card-title">✍️ ${s.maker}님의 써머리</div>
+    <div class="card-desc">아래 항목을 1~5점으로 평가해주세요.</div>
+  `;
+
+  QUESTIONS.forEach((q,qi)=>{
+    html += `<div class="q">
+      <div class="q-text">${qi+1}. ${q}</div>
+      <div class="scale" data-qi="${qi}">`;
+    for(let n=1;n<=5;n++){
+      html += `<button data-n="${n}" class="${a.q[qi]===n?'on':''}">${n}</button>`;
+    }
+    html += `</div>
+      <div class="scale-hint"><span>전혀</span><span>매우</span></div>
+    </div>`;
+  });
+
+  html += `<div class="divider"></div>`;
+  html += `<div class="q">
+      <div class="q-text">😊 좋았던 점 <span style="color:var(--sub);font-weight:400;">(선택)</span></div>
+      <textarea class="input" data-field="good" placeholder="앞으로도 계속 해줬으면 하는 것">${a.good}</textarea>
+    </div>`;
+  html += `<div class="q">
+      <div class="q-text">🔧 보완·추가 사항 <span style="color:var(--sub);font-weight:400;">(선택)</span></div>
+      <textarea class="input" data-field="improve" placeholder="보완했으면 하는 점 / 추가했으면 하는 자료">${a.improve}</textarea>
+    </div>`;
+
+  card.innerHTML = html;
+  box.appendChild(card);
+
+  // 점수 클릭
+  card.querySelectorAll('.scale').forEach(sc=>{
+    const qi = +sc.dataset.qi;
+    sc.querySelectorAll('button').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        a.q[qi] = +btn.dataset.n;
+        sc.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+        btn.classList.add('on');
+        updateTabs();
+      });
+    });
+  });
+  // 주관식
+  card.querySelectorAll('textarea').forEach(ta=>{
+    ta.addEventListener('input', ()=>{ a[ta.dataset.field] = ta.value; });
+  });
+
+  updateTabs();
+  window.scrollTo(0,0);
+}
+
+/* ====== 제출 ====== */
+const submitBtn = document.getElementById('submitBtn');
+submitBtn.addEventListener('click', async ()=>{
+  submitBtn.disabled = true;
+  submitBtn.textContent = '제출 중...';
+
+  const rows = SUBJECTS.map((s,i)=>({
+    name: info.name,
+    join2: info.join2,
+    subject: s.subject,
+    prof: s.prof,
+    maker: s.maker,
+    score1: answers[i].q[0],
+    score2: answers[i].q[1],
+    score3: answers[i].q[2],
+    good: answers[i].good,
+    improve: answers[i].improve,
+    time: new Date().toLocaleString('ko-KR'),
+  }));
+
+  try{
+    await fetch(SCRIPT_URL, {
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ rows })
+    });
+  }catch(e){}
+  document.getElementById('step-survey').classList.add('hidden');
+  document.getElementById('step-done').classList.remove('hidden');
+  window.scrollTo(0,0);
+});
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
